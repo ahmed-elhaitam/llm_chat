@@ -1,5 +1,6 @@
 import streamlit as st
 from langchain_groq import ChatGroq
+from langchain.schema import HumanMessage
 
 # Initialiser le modèle ChatGroq
 llm = ChatGroq(
@@ -21,9 +22,14 @@ if st.button("Envoyer"):
         with st.spinner("Chargement..."):
             try:
                 # Appeler le modèle pour générer une réponse
-                response = llm.invoke([{"role": "user", "content": user_input}])
+                response = llm.invoke([HumanMessage(content=user_input)])  # Utilisez HumanMessage
                 st.success("Réponse générée !")
-                st.write(response['choices'][0]['message']['content'])
+                
+                # Récupérer le contenu de la réponse
+                if hasattr(response, 'content'):  # Vérifiez si la réponse a un attribut `content`
+                    st.write(response.content)
+                else:
+                    st.error("Impossible de lire le contenu de la réponse.")
             except Exception as e:
                 st.error(f"Une erreur s'est produite : {e}")
     else:
