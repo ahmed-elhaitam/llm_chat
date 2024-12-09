@@ -49,6 +49,9 @@ if selected_ecole:
 # Interaction LLM pour des débouchés ou recommandations
 st.markdown("### Posez une question au LLM :")
 user_input = st.text_input("Votre question :", "")
+# Initialiser l'état de session pour stocker les messages
+if "messages" not in st.session_state:
+    st.session_state["messages"] = []
 
 if st.button("Envoyer"):
     if user_input.strip():
