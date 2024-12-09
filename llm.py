@@ -24,9 +24,12 @@ st.set_page_config(
 
 # Sidebar with advanced filtering options
 st.sidebar.title("🔍 Filtrer les écoles")
-domains = st.sidebar.multiselect(
-    "Domaines d'études",
-    ["Polyvalente", "Informatique", "Ingénieurs", "Télécommunications", "Agronomie"],
+specialites = st.sidebar.multiselect(
+    "Spécialités d'études",
+    [
+        "Polyvalente", "Informatique", "Ingénieurs",
+        "Télécommunications", "Agronomie", "Généraliste"
+    ],
     default=[]
 )
 location = st.sidebar.selectbox(
@@ -36,30 +39,18 @@ location = st.sidebar.selectbox(
 )
 
 # School data model with enriched information
-school_data = pd.DataFrame( [
-    {"Nom": "Académie internationale Mohammed VI de l'aviation civile", "Sigle": "AIAC", "Ville": "Casablanca", "Spécialité": "Polyvalente et Métiers de l'aviation"},
-    {"Nom": "École Hassania des travaux publics", "Sigle": "EHTP", "Ville": "Casablanca", "Spécialité": "Polyvalente"},
-    {"Nom": "École Mohammadia d'ingénieurs", "Sigle": "EMI", "Ville": "Rabat", "Spécialité": "Polyvalente"},
-    {"Nom": "École nationale d'industrie minérale", "Sigle": "ENIM", "Ville": "Rabat", "Spécialité": "Polyvalente"},
-    {"Nom": "Écoles nationales des sciences appliquées", "Sigle": "ENSA", "Ville": "11 villes", "Spécialité": "Polyvalente"},
-    {"Nom": "École nationale supérieure d'arts et métiers", "Sigle": "ENSAM", "Ville": "Meknès, Casablanca", "Spécialité": "Polyvalente"},
-    {"Nom": "École nationale supérieure d'électricité et de mécanique de Casablanca", "Sigle": "ENSEM", "Ville": "Casablanca", "Spécialité": "Ingénieurs électro-mécaniciens, Génie informatique"},
-    {"Nom": "École nationale supérieure d'informatique et d'analyse des systèmes", "Sigle": "ENSIAS", "Ville": "Rabat", "Spécialité": "Métiers de l'informatique"},
-    {"Nom": "École supérieure des industries du textile et de l'habillement", "Sigle": "ESITH", "Ville": "Casablanca", "Spécialité": "Génie industriel"},
-    {"Nom": "Institut agronomique et vétérinaire Hassan II", "Sigle": "IAV", "Ville": "Rabat", "Spécialité": "Agronomie, topographie"},
-    {"Nom": "Institut national des postes et télécommunications", "Sigle": "INPT", "Ville": "Rabat", "Spécialité": "Métiers des télécoms et des technologies d'information et de communication"},
-    {"Nom": "Institut national de statistique et d'économie appliquée", "Sigle": "INSEA", "Ville": "Rabat", "Spécialité": "Métiers de l'informatique, de l'économie, statistique et finance"},
-    {"Nom": "Cycle Ingénieur des facultés des sciences et techniques", "Sigle": "FST", "Ville": "5 villes", "Spécialité": "Polyvalente"},
-    {"Nom": "École des sciences de l'information", "Sigle": "ESI", "Ville": "Rabat", "Spécialité": "Sciences de l'information"},
-    {"Nom": "Ecole Normale Supérieure de l'Enseignement Technique", "Sigle": "ENSET", "Ville": "Mohammedia, Rabat", "Spécialité": "Polyvalente"},
-    {"Nom": "École Supérieure des Sciences et Technologies de l'Ingénierie", "Sigle": "ESSTI", "Ville": "Rabat", "Spécialité": "Polyvalente"},
-    {"Nom": "École Centrale Casablanca", "Sigle": "ECC", "Ville": "Casablanca", "Spécialité": "Généraliste"},
+school_data = pd.DataFrame([
+    {"Nom": "Académie internationale Mohammed VI de l'aviation civile", "Sigle": "AIAC", "Ville": "Casablanca", "Spécialité": "Polyvalente et Métiers de l'aviation", "Débouchés": "Pilote, Contrôleur aérien"},
+    {"Nom": "École Hassania des travaux publics", "Sigle": "EHTP", "Ville": "Casablanca", "Spécialité": "Polyvalente", "Débouchés": "Ingénieur Civil, Manager de projet"},
+    {"Nom": "École Mohammadia d'ingénieurs", "Sigle": "EMI", "Ville": "Rabat", "Spécialité": "Polyvalente", "Débouchés": "Ingénieur Mécanique, Consultant technique"},
+    {"Nom": "Écoles nationales des sciences appliquées", "Sigle": "ENSA", "Ville": "11 villes", "Spécialité": "Polyvalente", "Débouchés": "Développeur logiciel, Ingénieur électronique"},
+    {"Nom": "Institut national des postes et télécommunications", "Sigle": "INPT", "Ville": "Rabat", "Spécialité": "Télécommunications", "Débouchés": "Ingénieur Télécoms, Administrateur Réseaux"},
 ])
 
 # Apply filters
 filtered_schools = school_data.copy()
-if domains:
-    filtered_schools = filtered_schools[filtered_schools["Domaines"].isin(domains)]
+if specialites:
+    filtered_schools = filtered_schools[filtered_schools["Spécialité"].str.contains("|".join(specialites), case=False)]
 if location != "Toutes":
     filtered_schools = filtered_schools[filtered_schools["Ville"] == location]
 
@@ -76,19 +67,22 @@ st.sidebar.plotly_chart(fig, use_container_width=True)
 col1, col2 = st.columns(2)
 
 # School selection and details
-selected_school = st.selectbox("Choisissez une école :", filtered_schools["Nom"])
-school_info = school_data[school_data["Nom"] == selected_school].iloc[0]
+if not filtered_schools.empty:
+    selected_school = st.selectbox("Choisissez une école :", filtered_schools["Nom"])
+    school_info = filtered_schools[filtered_schools["Nom"] == selected_school].iloc[0]
 
-# Display school details
-with col1:
-    st.subheader("📍 Informations sur l'école")
-    st.markdown(f"**Nom :** {school_info['Nom']}")
-    st.markdown(f"**Ville :** {school_info['Ville']}")
-    st.markdown(f"**Domaines :** {school_info['Domaines']}")
+    # Display school details
+    with col1:
+        st.subheader("📍 Informations sur l'école")
+        st.markdown(f"**Nom :** {school_info['Nom']}")
+        st.markdown(f"**Ville :** {school_info['Ville']}")
+        st.markdown(f"**Spécialité :** {school_info['Spécialité']}")
 
-with col2:
-    st.subheader("🎯 Débouchés")
-    st.markdown(f"**Débouchés :** {school_info['Débouchés']}")
+    with col2:
+        st.subheader("🎯 Débouchés")
+        st.markdown(f"**Débouchés :** {school_info['Débouchés']}")
+else:
+    st.warning("Aucune école correspondante aux critères sélectionnés.")
 
 # Interaction with LLM
 st.markdown("### 💬 Posez une question :")
