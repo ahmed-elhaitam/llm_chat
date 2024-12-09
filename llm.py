@@ -36,7 +36,7 @@ location = st.sidebar.selectbox(
 )
 
 # School data model with enriched information
-school_data = pd.DataFrame(ecoles = [
+school_data = pd.DataFrame( [
     {"Nom": "Académie internationale Mohammed VI de l'aviation civile", "Sigle": "AIAC", "Ville": "Casablanca", "Spécialité": "Polyvalente et Métiers de l'aviation"},
     {"Nom": "École Hassania des travaux publics", "Sigle": "EHTP", "Ville": "Casablanca", "Spécialité": "Polyvalente"},
     {"Nom": "École Mohammadia d'ingénieurs", "Sigle": "EMI", "Ville": "Rabat", "Spécialité": "Polyvalente"},
