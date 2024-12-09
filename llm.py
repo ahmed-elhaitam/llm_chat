@@ -10,89 +10,69 @@ llm = ChatGroq(
 )
 
 # Interface utilisateur
-st.title("Chatbot Intelligent pour l'Orientation")
-st.markdown("Posez une question, ajoutez des fichiers pour le contexte, ou demandez des débouchés personnalisés !")
+st.title("LLM Innovant pour l'Orientation")
+st.markdown("**Sélectionnez une école, explorez les formations et découvrez les débouchés professionnels !**")
 
-# Historique des messages
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# Données des écoles et formations
+ecoles_formations = {
+    "EHTP": ["Génie Civil", "Génie Informatique", "Génie Electrique"],
+    "EMI": ["Génie Mécanique", "Génie Informatique", "Génie Industriel"],
+    "INPT": ["Data Science", "Cybersecurity", "Telecom Engineering"],
+    "ENSIAS": ["Artificial Intelligence", "Software Engineering", "Data Engineering"]
+}
 
-# Barre latérale pour les paramètres
-st.sidebar.title("Paramètres du modèle")
-temperature = st.sidebar.slider("Température :", 0.0, 1.0, 0.7)
-max_tokens = st.sidebar.number_input("Nombre maximum de tokens :", 10, 1000, 256)
-language = st.sidebar.selectbox("Langue :", ["Français", "Anglais", "Espagnol"])
-keyword_mode = st.sidebar.checkbox("Activer le mode 'Mots-Clés/Débouchés'", value=False)
+debouches_mapping = {
+    "Génie Civil": ["Ingénieur Civil, Urbaniste, Gestionnaire de Travaux"],
+    "Génie Informatique": ["Développeur Logiciel, Ingénieur Système, Architecte Cloud"],
+    "Génie Electrique": ["Ingénieur Électrique, Responsable Maintenance, Consultant Énergie"],
+    "Génie Mécanique": ["Ingénieur CAO, Expert en Robotique, Responsable Production"],
+    "Génie Industriel": ["Consultant Lean Management, Responsable Logistique"],
+    "Data Science": ["Data Scientist, Big Data Analyst, Machine Learning Engineer"],
+    "Cybersecurity": ["Analyste Sécurité, Ethical Hacker, Responsable IT"],
+    "Telecom Engineering": ["Ingénieur Réseaux, Consultant Télécoms, Architecte Télécom"],
+    "Artificial Intelligence": ["AI Developer, Robotics Engineer, Machine Learning Specialist"],
+    "Software Engineering": ["Software Developer, Application Architect, DevOps Engineer"],
+    "Data Engineering": ["Data Engineer, ETL Developer, Database Administrator"]
+}
 
-# Télécharger un fichier pour le contexte
-uploaded_file = st.sidebar.file_uploader("Téléchargez un fichier pour le contexte :", type=["pdf", "txt", "csv"])
-if uploaded_file:
-    file_content = uploaded_file.read().decode("utf-8")
-    st.session_state.messages.append(HumanMessage(content=f"Voici un contexte supplémentaire : {file_content}"))
+# Sélection de l'école
+selected_ecole = st.selectbox("Choisissez une école :", list(ecoles_formations.keys()))
 
-# Adapter les messages en fonction de la langue
-if language == "Français":
-    prompt_prefix = "Répondez en français : "
-elif language == "Anglais":
-    prompt_prefix = "Reply in English: "
-else:
-    prompt_prefix = "Responda en español: "
+if selected_ecole:
+    # Afficher les formations disponibles
+    formations = ecoles_formations[selected_ecole]
+    selected_formation = st.selectbox(f"Formations disponibles à {selected_ecole} :", formations)
 
-# Afficher l'historique des conversations
-for msg in st.session_state.messages:
-    with st.container():
-        if isinstance(msg, HumanMessage):
-            st.markdown(f"🧑‍💻 **Vous :** {msg.content}", unsafe_allow_html=True)
-        elif isinstance(msg, AIMessage):
-            st.markdown(f"🤖 **Bot :** {msg.content}", unsafe_allow_html=True)
+    if selected_formation:
+        # Afficher les débouchés correspondants
+        debouches = debouches_mapping.get(selected_formation, ["Débouchés diversifiés"])
+        st.markdown(f"### Débouchés pour {selected_formation} :")
+        for debouche in debouches:
+            st.write(f"- {debouche}")
 
-# Champ d'entrée pour la question
+# Interaction LLM pour des recommandations supplémentaires
+st.markdown("### Posez une question ou demandez une recommandation personnalisée :")
 user_input = st.text_input("Votre question :", "")
 
-# Générer la réponse ou traiter des mots-clés
 if st.button("Envoyer"):
     if user_input.strip():
         with st.spinner("Chargement..."):
             try:
                 # Ajouter le message utilisateur à l'historique
-                st.session_state.messages.append(HumanMessage(content=prompt_prefix + user_input))
+                message = f"Basé sur l'école {selected_ecole} et la formation {selected_formation}, {user_input}"
+                st.session_state.messages.append(HumanMessage(content=message))
 
-                # Activer le mode 'Mots-Clés/Débouchés'
-                if keyword_mode:
-                    from fuzzywuzzy import process
+                # Générer une réponse
+                llm.temperature = 0.7
+                response = llm.invoke(st.session_state.messages)
 
-                    # Exemple de mots-clés/débouchés
-                    keyword_debouches_mapping = {
-                        "Industrial": ["Production Manager, Industrial Engineer, Lean Consultant"],
-                        "Electrical": ["Electrical Designer, Power Systems Engineer"],
-                        "Computer": ["Software Developer, Data Engineer"],
-                    }
-
-                    # Recherche du mot-clé le plus proche
-                    best_match = process.extractOne(user_input, keyword_debouches_mapping.keys())
-                    if best_match and best_match[1] > 70:
-                        response = f"Mots-Clés correspondants : {best_match[0]}\nDébouchés : {', '.join(keyword_debouches_mapping[best_match[0]])}"
-                    else:
-                        response = "Aucun mot-clé pertinent trouvé."
-                else:
-                    # Générer une réponse classique
-                    llm.temperature = temperature
-                    llm.model_kwargs["max_tokens"] = max_tokens
-                    response = llm.invoke(st.session_state.messages)
-
-                    # Ajouter la réponse générée à l'historique
-                    st.session_state.messages.append(AIMessage(content=response.content))
+                # Ajouter la réponse générée à l'historique
+                st.session_state.messages.append(AIMessage(content=response.content))
 
                 # Afficher la réponse
                 st.success("Réponse générée !")
-                st.write(response if isinstance(response, str) else response.content)
+                st.write(response.content)
             except Exception as e:
-                st.error(f"Une erreur s'est produite : {e}")
+                st.error(f"Une erreur s'est produite : {e}")
     else:
         st.warning("Veuillez entrer une question avant d'envoyer.")
-
-# Feedback sur la réponse
-if st.session_state.messages:
-    feedback = st.radio("La réponse vous a-t-elle aidé ?", ("Oui", "Non"))
-    if feedback == "Non":
-        st.text_input("Pourquoi ?", key="feedback_comment")
