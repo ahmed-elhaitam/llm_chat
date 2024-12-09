@@ -28,23 +28,25 @@ specialites = st.sidebar.multiselect(
     "Spécialités d'études",
     [
         "Polyvalente", "Informatique", "Ingénieurs",
-        "Télécommunications", "Agronomie", "Généraliste"
+        "Télécommunications", "Agronomie", "Généraliste", "Métiers de l'aviation",
     ],
     default=[]
 )
 location = st.sidebar.selectbox(
     "Localisation",
-    ["Toutes", "Casablanca", "Rabat", "11 villes", "5 villes", "Mohammedia"],
+    ["Toutes", "Casablanca", "Rabat", "11 villes", "5 villes", "Mohammedia", "Meknès"],
     index=0
 )
 
-# School data model with enriched information
+# Enriched school data model
 school_data = pd.DataFrame([
-    {"Nom": "Académie internationale Mohammed VI de l'aviation civile", "Sigle": "AIAC", "Ville": "Casablanca", "Spécialité": "Polyvalente et Métiers de l'aviation", "Débouchés": "Pilote, Contrôleur aérien"},
-    {"Nom": "École Hassania des travaux publics", "Sigle": "EHTP", "Ville": "Casablanca", "Spécialité": "Polyvalente", "Débouchés": "Ingénieur Civil, Manager de projet"},
-    {"Nom": "École Mohammadia d'ingénieurs", "Sigle": "EMI", "Ville": "Rabat", "Spécialité": "Polyvalente", "Débouchés": "Ingénieur Mécanique, Consultant technique"},
-    {"Nom": "Écoles nationales des sciences appliquées", "Sigle": "ENSA", "Ville": "11 villes", "Spécialité": "Polyvalente", "Débouchés": "Développeur logiciel, Ingénieur électronique"},
-    {"Nom": "Institut national des postes et télécommunications", "Sigle": "INPT", "Ville": "Rabat", "Spécialité": "Télécommunications", "Débouchés": "Ingénieur Télécoms, Administrateur Réseaux"},
+    {"Nom": "Académie internationale Mohammed VI de l'aviation civile", "Sigle": "AIAC", "Ville": "Casablanca", "Spécialité": "Métiers de l'aviation", "Formations": ["Pilotage", "Gestion aérienne"], "Débouchés": "Pilote, Contrôleur aérien"},
+    {"Nom": "École Hassania des travaux publics", "Sigle": "EHTP", "Ville": "Casablanca", "Spécialité": "Polyvalente", "Formations": ["Génie Civil", "Hydraulique"], "Débouchés": "Ingénieur Civil, Manager de projet"},
+    {"Nom": "École Mohammadia d'ingénieurs", "Sigle": "EMI", "Ville": "Rabat", "Spécialité": "Polyvalente", "Formations": ["Génie Informatique", "Génie Mécanique"], "Débouchés": "Ingénieur Mécanique, Consultant technique"},
+    {"Nom": "Écoles nationales des sciences appliquées", "Sigle": "ENSA", "Ville": "11 villes", "Spécialité": "Polyvalente", "Formations": ["Développement logiciel", "Réseaux"], "Débouchés": "Développeur logiciel, Ingénieur électronique"},
+    {"Nom": "Institut national des postes et télécommunications", "Sigle": "INPT", "Ville": "Rabat", "Spécialité": "Télécommunications", "Formations": ["Ingénierie Télécoms"], "Débouchés": "Ingénieur Télécoms, Administrateur Réseaux"},
+    {"Nom": "Institut national de statistique et d'économie appliquée", "Sigle": "INSEA", "Ville": "Rabat", "Spécialité": "Statistiques", "Formations": ["Data Science", "Analyse Financière"], "Débouchés": "Data Scientist, Analyste financier"},
+    {"Nom": "École nationale supérieure d'informatique et d'analyse des systèmes", "Sigle": "ENSIAS", "Ville": "Rabat", "Spécialité": "Informatique", "Formations": ["Intelligence Artificielle", "Cybersécurité"], "Débouchés": "Développeur logiciel, Expert en cybersécurité"},
 ])
 
 # Apply filters
@@ -79,6 +81,11 @@ if not filtered_schools.empty:
         st.markdown(f"**Spécialité :** {school_info['Spécialité']}")
 
     with col2:
+        st.subheader("🎓 Formations disponibles")
+        formations = school_info["Formations"]
+        for formation in formations:
+            st.markdown(f"- {formation}")
+
         st.subheader("🎯 Débouchés")
         st.markdown(f"**Débouchés :** {school_info['Débouchés']}")
 else:
@@ -92,12 +99,9 @@ if st.button("Envoyer"):
     if user_input.strip():
         with st.spinner("Chargement..."):
             try:
-                # Dynamic temperature adjustment
-                query_complexity = len(user_input.split())
-                llm.temperature = 0.5 if query_complexity < 10 else 0.7
-
-                # Add user query to conversation history
-                st.session_state["messages"].append(HumanMessage(content=user_input))
+                # Combine question with school context
+                message = f"L'utilisateur a sélectionné l'école {school_info['Nom']} ({school_info['Ville']}). Question : {user_input}"
+                st.session_state["messages"].append(HumanMessage(content=message))
 
                 # Generate LLM response
                 response = llm.invoke(st.session_state["messages"])
