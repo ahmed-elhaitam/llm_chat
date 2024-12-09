@@ -11,55 +11,51 @@ llm = ChatGroq(
 
 # Interface utilisateur
 st.title("LLM Innovant pour l'Orientation")
-st.markdown("**Sélectionnez une école, explorez les formations et découvrez les débouchés professionnels !**")
+st.markdown("**Sélectionnez une école et découvrez ses débouchés avec un LLM !**")
 
-# Données des écoles et formations
-ecoles_formations = {
-    "EHTP": ["Génie Civil", "Génie Informatique", "Génie Electrique"],
-    "EMI": ["Génie Mécanique", "Génie Informatique", "Génie Industriel"],
-    "INPT": ["Data Science", "Cybersecurity", "Telecom Engineering"],
-    "ENSIAS": ["Artificial Intelligence", "Software Engineering", "Data Engineering"]
-}
+# Données des écoles
+ecoles = [
+    {"Nom": "Académie internationale Mohammed VI de l'aviation civile", "Sigle": "AIAC", "Ville": "Casablanca", "Spécialité": "Polyvalente et Métiers de l'aviation"},
+    {"Nom": "École Hassania des travaux publics", "Sigle": "EHTP", "Ville": "Casablanca", "Spécialité": "Polyvalente"},
+    {"Nom": "École Mohammadia d'ingénieurs", "Sigle": "EMI", "Ville": "Rabat", "Spécialité": "Polyvalente"},
+    {"Nom": "École nationale d'industrie minérale", "Sigle": "ENIM", "Ville": "Rabat", "Spécialité": "Polyvalente"},
+    {"Nom": "Écoles nationales des sciences appliquées", "Sigle": "ENSA", "Ville": "11 villes", "Spécialité": "Polyvalente"},
+    {"Nom": "École nationale supérieure d'arts et métiers", "Sigle": "ENSAM", "Ville": "Meknès, Casablanca", "Spécialité": "Polyvalente"},
+    {"Nom": "École nationale supérieure d'électricité et de mécanique de Casablanca", "Sigle": "ENSEM", "Ville": "Casablanca", "Spécialité": "Ingénieurs électro-mécaniciens, Génie informatique"},
+    {"Nom": "École nationale supérieure d'informatique et d'analyse des systèmes", "Sigle": "ENSIAS", "Ville": "Rabat", "Spécialité": "Métiers de l'informatique"},
+    {"Nom": "École supérieure des industries du textile et de l'habillement", "Sigle": "ESITH", "Ville": "Casablanca", "Spécialité": "Génie industriel"},
+    {"Nom": "Institut agronomique et vétérinaire Hassan II", "Sigle": "IAV", "Ville": "Rabat", "Spécialité": "Agronomie, topographie"},
+    {"Nom": "Institut national des postes et télécommunications", "Sigle": "INPT", "Ville": "Rabat", "Spécialité": "Métiers des télécoms et des technologies d'information et de communication"},
+    {"Nom": "Institut national de statistique et d'économie appliquée", "Sigle": "INSEA", "Ville": "Rabat", "Spécialité": "Métiers de l'informatique, de l'économie, statistique et finance"},
+    {"Nom": "Cycle Ingénieur des facultés des sciences et techniques", "Sigle": "FST", "Ville": "5 villes", "Spécialité": "Polyvalente"},
+    {"Nom": "École des sciences de l'information", "Sigle": "ESI", "Ville": "Rabat", "Spécialité": "Sciences de l'information"},
+    {"Nom": "Ecole Normale Supérieure de l'Enseignement Technique", "Sigle": "ENSET", "Ville": "Mohammedia, Rabat", "Spécialité": "Polyvalente"},
+    {"Nom": "École Supérieure des Sciences et Technologies de l'Ingénierie", "Sigle": "ESSTI", "Ville": "Rabat", "Spécialité": "Polyvalente"},
+    {"Nom": "École Centrale Casablanca", "Sigle": "ECC", "Ville": "Casablanca", "Spécialité": "Généraliste"},
+]
 
-debouches_mapping = {
-    "Génie Civil": ["Ingénieur Civil, Urbaniste, Gestionnaire de Travaux"],
-    "Génie Informatique": ["Développeur Logiciel, Ingénieur Système, Architecte Cloud"],
-    "Génie Electrique": ["Ingénieur Électrique, Responsable Maintenance, Consultant Énergie"],
-    "Génie Mécanique": ["Ingénieur CAO, Expert en Robotique, Responsable Production"],
-    "Génie Industriel": ["Consultant Lean Management, Responsable Logistique"],
-    "Data Science": ["Data Scientist, Big Data Analyst, Machine Learning Engineer"],
-    "Cybersecurity": ["Analyste Sécurité, Ethical Hacker, Responsable IT"],
-    "Telecom Engineering": ["Ingénieur Réseaux, Consultant Télécoms, Architecte Télécom"],
-    "Artificial Intelligence": ["AI Developer, Robotics Engineer, Machine Learning Specialist"],
-    "Software Engineering": ["Software Developer, Application Architect, DevOps Engineer"],
-    "Data Engineering": ["Data Engineer, ETL Developer, Database Administrator"]
-}
+# Liste des écoles
+ecoles_nom = [ecole["Nom"] for ecole in ecoles]
+selected_ecole = st.selectbox("Choisissez une école :", ecoles_nom)
 
-# Sélection de l'école
-selected_ecole = st.selectbox("Choisissez une école :", list(ecoles_formations.keys()))
-
+# Afficher les détails de l'école sélectionnée
 if selected_ecole:
-    # Afficher les formations disponibles
-    formations = ecoles_formations[selected_ecole]
-    selected_formation = st.selectbox(f"Formations disponibles à {selected_ecole} :", formations)
+    ecole_info = next(ecole for ecole in ecoles if ecole["Nom"] == selected_ecole)
+    st.markdown(f"**Nom** : {ecole_info['Nom']}")
+    st.markdown(f"**Sigle** : {ecole_info['Sigle']}")
+    st.markdown(f"**Ville(s)** : {ecole_info['Ville']}")
+    st.markdown(f"**Spécialité** : {ecole_info['Spécialité']}")
 
-    if selected_formation:
-        # Afficher les débouchés correspondants
-        debouches = debouches_mapping.get(selected_formation, ["Débouchés diversifiés"])
-        st.markdown(f"### Débouchés pour {selected_formation} :")
-        for debouche in debouches:
-            st.write(f"- {debouche}")
-
-# Interaction LLM pour des recommandations supplémentaires
-st.markdown("### Posez une question ou demandez une recommandation personnalisée :")
+# Interaction LLM pour des débouchés ou recommandations
+st.markdown("### Posez une question au LLM :")
 user_input = st.text_input("Votre question :", "")
 
 if st.button("Envoyer"):
     if user_input.strip():
         with st.spinner("Chargement..."):
             try:
-                # Ajouter le message utilisateur à l'historique
-                message = f"Basé sur l'école {selected_ecole} et la formation {selected_formation}, {user_input}"
+                # Ajouter le contexte de l'école à la question
+                message = f"École sélectionnée : {selected_ecole}. {user_input}"
                 st.session_state.messages.append(HumanMessage(content=message))
 
                 # Générer une réponse
