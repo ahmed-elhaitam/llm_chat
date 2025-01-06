@@ -1,10 +1,13 @@
 import streamlit as st
+from langchain_groq import ChatGroq
 from langchain.schema import HumanMessage, AIMessage
-from chatbot_logic import initialize_model, generate_response
 
 # Initialiser le modèle ChatGroq
-API_KEY = "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"
-llm = initialize_model(api_key=API_KEY)
+llm = ChatGroq(
+    model_name="llama-3.1-70b-versatile",
+    groq_api_key="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",
+    temperature=0
+)
 
 # Interface utilisateur
 st.title("Chatbot Intelligent avec LangChain et ChatGroq")
@@ -27,19 +30,20 @@ if uploaded_file:
     st.session_state.messages.append(HumanMessage(content=f"Voici un contexte supplémentaire : {file_content}"))
 
 # Personnalisation des messages en fonction de la langue
-prompt_prefix = {
-    "Français": "Répondez en français : ",
-    "Anglais": "Reply in English: ",
-    "Espagnol": "Responda en español: "
-}.get(language, "")
+if language == "Français":
+    prompt_prefix = "Répondez en français : "
+elif language == "Anglais":
+    prompt_prefix = "Reply in English: "
+else:
+    prompt_prefix = "Responda en español: "
 
 # Afficher l'historique des conversations
 for msg in st.session_state.messages:
     with st.container():
         if isinstance(msg, HumanMessage):
-            st.markdown(f"🧑‍💻 Vous : {msg.content}", unsafe_allow_html=True)
+            st.markdown(f"🧑‍💻 Vous :** {msg.content}", unsafe_allow_html=True)
         elif isinstance(msg, AIMessage):
-            st.markdown(f"🤖 Bot : {msg.content}", unsafe_allow_html=True)
+            st.markdown(f"🤖 Bot :** {msg.content}", unsafe_allow_html=True)
 
 # Champ d'entrée pour la question
 user_input = st.text_input("Votre question :", "")
@@ -53,14 +57,16 @@ if st.button("Envoyer"):
                 st.session_state.messages.append(HumanMessage(content=prompt_prefix + user_input))
 
                 # Générer une réponse
-                response_content = generate_response(llm, st.session_state.messages, temperature, max_tokens)
+                llm.temperature = temperature
+                llm.model_kwargs["max_tokens"] = max_tokens
+                response = llm.invoke(st.session_state.messages)
 
                 # Ajouter la réponse du bot à l'historique
-                st.session_state.messages.append(AIMessage(content=response_content))
+                st.session_state.messages.append(AIMessage(content=response.content))
 
                 # Afficher la réponse
                 st.success("Réponse générée !")
-                st.write(response_content)
+                st.write(response.content)
             except Exception as e:
                 st.error(f"Une erreur s'est produite : {e}")
     else:
